@@ -6,7 +6,10 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build": "expo export:web",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@react-navigation/native": "^7.1.17",
@@ -31,9 +34,11 @@
     "@expo/metro-config": "^54.0.4",
     "@types/react": "~19.1.0",
     "@types/react-native": "^0.73.0",
+    "gh-pages": "^6.3.0",
     "react-native-svg-transformer": "^1.5.1",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "homepage": "https://leejitun.github.io/gion-e"
 }
