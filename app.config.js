@@ -10,17 +10,22 @@ export default ({ config }) => {
     newArchEnabled: true,
     extra: {
       weatherApiUrl: process.env.WEATHER_API_URL,
-      weatherApiKey: process.env.WEATHER_API_KEY
+      weatherApiKey: process.env.WEATHER_API_KEY,
+      eas: {
+        projectId: "d296c919-7648-4e2f-9f21-d4ff845b14d0" // ✅ 필수
+      }
     },
     splash: {
       image: "./assets/splash-icon.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff"
     },
+    assetBundlePatterns: ["assets/**/*"],
     ios: {
       supportsTablet: true
     },
     android: {
+      package: "com.anonymous.gione",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
@@ -30,6 +35,14 @@ export default ({ config }) => {
     },
     web: {
       favicon: "./assets/favicon.png"
+    },
+
+    // ✅ EAS Update 설정 추가
+    updates: {
+      url: "https://u.expo.dev/d296c919-7648-4e2f-9f21-d4ff845b14d0"
+    },
+    runtimeVersion: {
+      policy: "appVersion"
     }
   };
 };
