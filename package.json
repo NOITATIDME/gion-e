@@ -1,12 +1,15 @@
 {
   "name": "gion-e",
   "version": "1.0.0",
-  "main": "./app/index.ts",
+  "main": "./app/index.tsx",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build": "expo export --platform web",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@react-navigation/native": "^7.1.17",
@@ -19,15 +22,23 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.4",
+    "react-native-responsive-fontsize": "^0.5.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
+    "react-native-size-matters": "^0.4.2",
+    "react-native-svg": "^15.13.0",
     "react-native-web": "^0.21.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@expo/metro-config": "^54.0.4",
     "@types/react": "~19.1.0",
+    "@types/react-native": "^0.73.0",
+    "gh-pages": "^6.3.0",
+    "react-native-svg-transformer": "^1.5.1",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "homepage": "https://leejitun.github.io/gion-e"
 }
