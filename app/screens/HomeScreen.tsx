@@ -17,6 +17,7 @@ import { homeStyles as styles } from "../styles/HomeScreen.styles";
 
 // === expo-video 최신 API ===
 import { VideoView, useVideoPlayer } from "expo-video";
+import { Asset } from "expo-asset";
 
 import LocationModal from "../components/LocationModal";
 import OutfitModal from "../components/OutfitModal";
@@ -65,9 +66,9 @@ const getTimeOfDay = (hour: number = new Date().getHours()): TimeOfDay => {
 
 // 시간대별 비디오 배경 (mp4)
 const timeAssets: Record<TimeOfDay, any> = {
-  morning: require("../../assets/videos/night_scene.mp4"),
-  afternoon: require("../../assets/videos/night_scene.mp4"),
-  night: require("../../assets/videos/night_scene.mp4"),
+  morning: Asset.fromModule(require("../../assets/videos/night_scene.mp4")),
+  afternoon: Asset.fromModule(require("../../assets/videos/night_scene.mp4")),
+  night: Asset.fromModule(require("../../assets/videos/night_scene.mp4")),
 };
 
 // =============================
