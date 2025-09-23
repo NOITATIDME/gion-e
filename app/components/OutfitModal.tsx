@@ -14,7 +14,7 @@ import { outfitData } from '../data/outfitData';
 type Props = {
   visible: boolean;
   onClose: () => void;
-  currentTemp?: number; // ✅ 현재 온도 (부모에서 넘겨주기)
+  currentTemp?: number; // 현재 온도 (부모에서 넘겨주기)
 };
 
 export default function OutfitModal({ visible, onClose, currentTemp = 9 }: Props) {
