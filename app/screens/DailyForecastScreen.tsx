@@ -7,6 +7,10 @@ import {
     StyleSheet,
 } from 'react-native';
 
+//라이선스 Modal Import
+import LicenseModal from '../components/LicenseModal'
+import LicenseIcon from '../../assets/images/LicenseIcon.svg'
+
 export type DailyWeather = {
     date: string;
     min: number;
@@ -47,6 +51,13 @@ export default function DailyForecastScreen({ route }: Props) {
 
     const comments = ['쌀쌀해요 🧥', '가벼운 외투가 필요해요 🏠'];
 
+    // 라이선스 고지 모달 State 정의
+    const [isLicenseModalVisible, setIsLicenseModalVisible] = useState(false);
+
+    // 모달을 열고 닫는 함수
+    const openLicenseModal = () => setIsLicenseModalVisible(true);
+    const closeLicenseModal = () => setIsLicenseModalVisible(false);
+    
     return (
         <View style={styles.container}>
             {/* === 전체 카드 === */}
@@ -131,6 +142,19 @@ export default function DailyForecastScreen({ route }: Props) {
                     ))}
                 </ScrollView>
             </View>
+            {/* === 라이선스고지  === */}
+            <View>
+                <TouchableOpacity style={styles.licenseButton} onPress={openLicenseModal}>
+                    <LicenseIcon width={24} height={24} />
+                    <Text style={styles.licenseButtonText}>오픈소스 라이선스</Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* <LicenseModal visible={licenseModalVisible} onClose={closeLicenseModal} /> */}
+            <LicenseModal 
+                isVisible={isLicenseModalVisible} // 현재 상태를 모달에 전달
+                onClose={closeLicenseModal}      // 닫기 함수를 모달에 전달
+            />
         </View>
     );
 }
@@ -192,4 +216,32 @@ const styles = StyleSheet.create({
 
     cell: { flex: 1, alignItems: 'center' },
     clothes: { fontSize: 12, color: '#888' },
+
+    // 라이선스 버튼
+ licenseButton: {
+        flexDirection: 'row',       // 아이콘 + 텍스트 한 줄
+        justifyContent: 'center',   // 전체 가운데 정렬
+        alignItems: 'center',       // 수직 가운데
+        padding: 15,
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
+        backgroundColor: '#fff',
+        borderRadius: 8,
+        width: '100%',
+    },
+
+    licenseButtonText: {
+        fontSize: 16,
+        color: '#999',
+        fontWeight: '500',
+        marginLeft: 8,              // 아이콘과 텍스트 간격
+    },
+    footer: {
+        padding: 20,
+        alignItems: 'center',
+    },
+    footerText: {
+        fontSize: 12,
+        color: '#999',
+    },
 });
