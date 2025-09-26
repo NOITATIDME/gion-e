@@ -79,6 +79,7 @@ const timeAssets: Record<TimeOfDay, any> = {
 //   night: { uri: "https://drive.google.com/uc?export=download&id=1JVkJWb6_T8NUEF-BuMHZqQaM_cSBSbkI" },
 // };
 
+
 // 캐릭터 타입
 type CharacterType = "pig" | "rabbit" | "duck";
 
