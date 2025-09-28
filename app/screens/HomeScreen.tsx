@@ -65,19 +65,26 @@ const getTimeOfDay = (hour: number = new Date().getHours()): TimeOfDay => {
   return "night"; 
 };
 
-// 시간대별 비디오 배경 (비디오는 임시) -> 임시로 웹에서 볼 때
+// 1. 시간대별 비디오 배경 (비디오는 임시) -> 임시로 웹에서 볼 때
 const timeAssets: Record<TimeOfDay, any> = {
   morning: require("../../assets/videos/morningScene.mp4"),
   afternoon: require("../../assets/videos/afternoonScene.mp4"),
   night: require("../../assets/videos/nightScene.mp4"),
 };
 
-// 원격 영상 (Google Drive) 버전 -> 필요 시 위 코드 대신 사용 가능
+// 2. 원격 영상 (Google Drive) 버전 -> 필요 시 위 코드 대신 사용 가능
 // const timeAssets: Record<TimeOfDay, any> = {
 //   morning: { uri: "https://drive.google.com/uc?export=download&id=1JVkJWb6_T8NUEF-BuMHZqQaM_cSBSbkI" },
 //   afternoon: { uri: "https://drive.google.com/uc?export=download&id=1JVkJWb6_T8NUEF-BuMHZqQaM_cSBSbkI" },
 //   night: { uri: "https://drive.google.com/uc?export=download&id=1JVkJWb6_T8NUEF-BuMHZqQaM_cSBSbkI" },
 // };
+
+// 3. 클라우드 스토리지 버전 
+// const timeAssets: Record<TimeOfDay, any> = {
+//   morning: { uri: "https://korea-gion-e.s3.ap-northeast-2.amazonaws.com/videos/morningScene.mp4" },
+//   afternoon: { uri: "https://korea-gion-e.s3.ap-northeast-2.amazonaws.com/videos/afternoonScene.mp4" },
+//   night: { uri: "https://korea-gion-e.s3.ap-northeast-2.amazonaws.com/videos/nightScene.mp4" },
+// }
 
 
 // 캐릭터 타입
