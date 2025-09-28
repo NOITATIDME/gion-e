@@ -4,12 +4,14 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 // === 스크린 import ===
 import HomeScreen from './screens/HomeScreen';
+import HomeScreen2 from './screens/HomeScreen2';
 import DailyForecastScreen from './screens/DailyForecastScreen';
 
 // === 네비게이션 타입 ===
 export type RootStackParamList = {
   Home: undefined;
   DailyForecast: { location: string; dailyData: any[] };
+  Home2: undefined;
 };;
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -27,8 +29,16 @@ export default function App() {
           name="DailyForecast"
           component={DailyForecastScreen}
           options={{ title: '일별 예보' }}
-        />
+        /> 
+        <Stack.Screen
+          name="Home2"
+          component={HomeScreen2}
+          options={{ headerShown: false }}
+        /> 
       </Stack.Navigator>
+
+      
+ 
     </NavigationContainer>
   );
 }

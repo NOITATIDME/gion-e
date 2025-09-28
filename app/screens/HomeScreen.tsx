@@ -266,6 +266,11 @@ export default function HomeScreen() {
           <TouchableOpacity onPress={() => setOutfitVisible(true)}>
             <Icon2 width={normalizeSize(58)} height={normalizeSize(58)} />
           </TouchableOpacity>
+
+          {/* ===== 예보테스트 페이지 ===== */}
+          <TouchableOpacity onPress={() => navigation.navigate("Home2")}>
+            <Icon1 width={normalizeSize(58)} height={normalizeSize(58)} />
+          </TouchableOpacity>
           
           <TouchableOpacity
             onPress={() =>
