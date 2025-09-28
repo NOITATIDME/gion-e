@@ -14,6 +14,8 @@ export default ({ config }) => {
       dailyMidTaApiUrl: process.env.DAILY_WEATHER_MID_API_URL,
       dailyMidLandFcstApiUrl: process.env.DAILY_WEATHER_MID_LAND_API_URL,
       dailyWeatherApiKey: process.env.DAILY_WEATHER_API_KEY,
+      kakaoApiUrl: process.env.KAKAO_API_URL,
+      kakaoApiKey: process.env.KAKAO_API_KEY,
       eas: {
         projectId: "d296c919-7648-4e2f-9f21-d4ff845b14d0" // ✅ 필수
       }
