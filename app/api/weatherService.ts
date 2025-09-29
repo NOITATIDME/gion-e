@@ -51,6 +51,75 @@ function convertToGrid(lat: number, lon: number) {
 }
 
 // =============================
+// 일출/일몰 계산
+// =============================
+function getSunTimes(lat: number, lon: number, date: Date) {
+    // 참고: NOAA 공식
+    const rad = Math.PI / 180;
+    const J1970 = 2440588;
+    const J2000 = 2451545;
+    const msPerDay = 1000 * 60 * 60 * 24;
+
+    function toJulian(date: Date) {
+        return date.getTime() / msPerDay - 0.5 + J1970;
+    }
+
+    function fromJulian(j: number) {
+        return new Date((j + 0.5 - J1970) * msPerDay);
+    }
+
+    function toDays(date: Date) {
+        return toJulian(date) - J2000;
+    }
+
+    const d = toDays(date);
+    const e = rad * 23.4397;  
+    const lw = rad * -lon;
+
+    const n = Math.round(d - 0.0009 - lw / (2 * Math.PI));
+    const Jnoon = J2000 + n + 0.0009 + lw / (2 * Math.PI);
+
+    function solarMeanAnomaly(d: number) {
+        return rad * (357.5291 + 0.98560028 * d);
+    }
+
+    function eclipticLongitude(M: number) {
+        const C =
+            rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M));
+        const P = rad * 102.9372;
+        return M + C + P + Math.PI;
+    }
+
+    function declination(L: number) {
+        return Math.asin(Math.sin(L) * Math.sin(e));
+    }
+
+    function hourAngle(h: number, phi: number, d: number) {
+        return Math.acos(
+            (Math.sin(h) - Math.sin(phi) * Math.sin(d)) / (Math.cos(phi) * Math.cos(d))
+        );
+    }
+
+    const M = solarMeanAnomaly(d);
+    const L = eclipticLongitude(M);
+    const dec = declination(L);
+
+    const phi = rad * lat;
+    const Jtransit = Jnoon + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+
+    const h0 = rad * -0.83; // Sun altitude for sunrise/sunset
+    const H = hourAngle(h0, phi, dec);
+
+    const Jrise = Jtransit - H / (2 * Math.PI);
+    const Jset = Jtransit + H / (2 * Math.PI);
+
+    return {
+        sunrise: fromJulian(Jrise),
+        sunset: fromJulian(Jset),
+    };
+}
+
+// =============================
 // 라벨 포맷 함수 (지금, 내일, 모레 포함)
 // =============================
 const formatLabel = (date: string, hour: number) => {
@@ -80,7 +149,7 @@ const formatLabel = (date: string, hour: number) => {
         hour
     );
 
-    // 오늘
+    //오늘
     if (date === todayStr) {
         if (hour === now.getHours()) return "지금";
         if (hour < 12) return `오전 ${hour}`;
@@ -138,6 +207,8 @@ export async function fetchWeatherData() {
     const { nx, ny } = convertToGrid(latitude, longitude);
 
     const now = new Date();
+    const sunTimes = getSunTimes(latitude, longitude, now);
+
     const baseDate = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(
         2,
         "0"
@@ -170,10 +241,7 @@ export async function fetchWeatherData() {
     const items = json.response.body.items.item;
 
     const forecastMap: Record<string, any> = {};
-    const dailyMap: Record<
-        string,
-        { low: number; high: number; condition: string }
-    > = {};
+    const dailyMap: Record<string, { low: number; high: number; condition: string }> = {};
 
     items.forEach((item: any) => {
         const { fcstDate, fcstTime, category, fcstValue } = item;
@@ -185,33 +253,49 @@ export async function fetchWeatherData() {
                 date: fcstDate,
                 hour,
                 temp: null,
-                condition: "sunny",
+                condition: "맑음-주",
             };
         }
 
+        // 기온
         if (category === "TMP") {
             const temp = parseInt(fcstValue);
             forecastMap[key].temp = temp;
 
             if (!dailyMap[fcstDate]) {
-                dailyMap[fcstDate] = { low: temp, high: temp, condition: "sunny" };
+                dailyMap[fcstDate] = { low: temp, high: temp, condition: "맑음-주" };
             } else {
                 dailyMap[fcstDate].low = Math.min(dailyMap[fcstDate].low, temp);
                 dailyMap[fcstDate].high = Math.max(dailyMap[fcstDate].high, temp);
             }
         }
 
+        // 강수 형태 (PTY)
         if (category === "PTY") {
-            if (fcstValue !== "0") {
-                forecastMap[key].condition = "rain";
+            if (fcstValue === "1" || fcstValue === "5") {
+                forecastMap[key].condition = "비";
+            } else if (["2", "3", "6", "7"].includes(fcstValue)) {
+                forecastMap[key].condition = "눈";
             }
         }
 
-        if (category === "SKY") {
-            if (forecastMap[key].condition !== "rain") {
-                if (fcstValue === "1") forecastMap[key].condition = "sunny";
-                else if (fcstValue === "3") forecastMap[key].condition = "partly";
-                else if (fcstValue === "4") forecastMap[key].condition = "cloudy";
+        // 하늘 상태 (SKY) → 강수 없을 때만 반영
+        if (category === "SKY" && (forecastMap[key].condition === "맑음(주)" || forecastMap[key].condition.startsWith("맑음") || forecastMap[key].condition.startsWith("부분적 흐림"))) {
+            const dateObj = new Date(
+                parseInt(fcstDate.slice(0, 4)),
+                parseInt(fcstDate.slice(4, 6)) - 1,
+                parseInt(fcstDate.slice(6, 8)),
+                hour
+            );
+
+            const isDaytime = dateObj >= sunTimes.sunrise && dateObj < sunTimes.sunset;
+
+            if (fcstValue === "1") {
+                forecastMap[key].condition = isDaytime ? "맑음(주)" : "맑음(야)";
+            } else if (fcstValue === "3") {
+                forecastMap[key].condition = isDaytime ? "부분적 흐림(주)" : "부분적 흐림(야)";
+            } else if (fcstValue === "4") {
+                forecastMap[key].condition = "흐림";
             }
         }
     });
@@ -223,14 +307,6 @@ export async function fetchWeatherData() {
     );
 
     // ====== 3시간 단위 예보 ======
-    const next3Hour = new Date(now);
-    next3Hour.setMinutes(0, 0, 0);
-
-    const offset = next3Hour.getHours() % 3;
-    if (offset !== 0) {
-        next3Hour.setHours(next3Hour.getHours() + (3 - offset));
-    }
-
     const hourly = [];
 
     for (let f of sorted) {
@@ -241,11 +317,7 @@ export async function fetchWeatherData() {
             f.hour
         );
 
-        // "지금" 포함해서 formatLabel이 알아서 처리
-        if (
-            (t >= now && f.hour % 3 === 0) ||
-            (f.date === baseDate && f.hour === hour)
-        ) {
+        if ((t >= now && f.hour % 3 === 0) || (f.date === baseDate && f.hour === hour)) {
             hourly.push({
                 label: formatLabel(f.date, f.hour),
                 temp: f.temp,
