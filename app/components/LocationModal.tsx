@@ -13,6 +13,10 @@ import Constants from "expo-constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ClearIcon from "../../assets/images/close.svg";  
 import SearchIcon from "../../assets/images/search.svg";  
+import { useLocationStore } from "../store/LocationStore";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../../app/App"
 
 type Props = {
   visible: boolean;
@@ -27,6 +31,11 @@ export default function LocationModal({ visible, onClose }: Props) {
 
   const { kakaoApiUrl, kakaoApiKey } = Constants.expoConfig?.extra ?? {};
   const insets = useSafeAreaInsets();
+  const setLocation = useLocationStore((state) => state.setLocation);
+
+  type NavProp = NativeStackNavigationProp<RootStackParamList, "Home">;
+
+  const navigation = useNavigation<NavProp>();
 
   const searchAddress = async () => {
     if (!query) return;
@@ -36,16 +45,35 @@ export default function LocationModal({ visible, onClose }: Props) {
         `${kakaoApiUrl}?query=${encodeURIComponent(query)}`,
         {
           headers: {
-            Authorization: `KakaoAK ${kakaoApiKey}`, // 👉 REST API 키 입력
+            Authorization: `KakaoAK ${kakaoApiKey}`,
           },
         }
       );
 
       const data = await response.json();
-      console.log(data);
+      console.log("data :", data);
 
       if (data.documents) {
-        setResults(data.documents);
+        const mapped = data.documents.map((doc: any) => {
+          // 우선순위: road_address → address
+          const region = doc.road_address ?? doc.address;
+
+          if (!region) return "";
+
+          const parts = [
+            region.region_1depth_name,
+            region.region_2depth_name,
+            region.region_3depth_name,
+          ].filter(Boolean);
+
+          return parts.join(" ");
+        });
+
+        // 중복 제거 & 빈값 제거
+        const unique = Array.from(new Set(mapped.filter(Boolean)));
+        console.log("unique :", unique);
+
+        setResults(unique);
       }
     } catch (error) {
       console.error(error);
@@ -113,18 +141,18 @@ export default function LocationModal({ visible, onClose }: Props) {
 
         {/* 스크롤 리스트 */}
         <ScrollView contentContainerStyle={styles.list}>
-          <TouchableOpacity style={styles.item}>
-            <Text>📍 현재 위치</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.item}>
-            <Text>하남시 미사1동</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.item}>
-            <Text>서울시 반포동</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.item}>
-            <Text>부산시 범일동</Text>
-          </TouchableOpacity>
+          {results.map((region, index) => (
+            <TouchableOpacity 
+              key={index} 
+              style={styles.item} 
+              onPress={() => {
+              setLocation(results[index]);            // 선택한 문서 전체 저장
+              onClose();
+              navigation.navigate("Home"); // 메인 화면으로 이동
+            }}>
+              <Text>{region}</Text>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
       </SafeAreaView>
     </Modal>
@@ -133,3 +161,4 @@ export default function LocationModal({ visible, onClose }: Props) {
 
 // styles
 import { locationModalStyles as styles } from '../styles/LocationModal.styles';
+
