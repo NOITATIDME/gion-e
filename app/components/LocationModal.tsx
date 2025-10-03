@@ -13,6 +13,8 @@ import Constants from "expo-constants";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ClearIcon from "../../assets/images/close.svg";  
 import SearchIcon from "../../assets/images/search.svg";  
+import ArrowIcon from "../../assets/images/arrow.svg";
+
 import { useLocationStore } from "../store/LocationStore";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -39,14 +41,11 @@ export default function LocationModal({ visible, onClose }: Props) {
 
   const searchAddress = async () => {
     if (!query) return;
-
     try {
       const response = await fetch(
         `${kakaoApiUrl}?query=${encodeURIComponent(query)}`,
         {
-          headers: {
-            Authorization: `KakaoAK ${kakaoApiKey}`,
-          },
+          headers: { Authorization: `KakaoAK ${kakaoApiKey}` },
         }
       );
 
@@ -54,26 +53,12 @@ export default function LocationModal({ visible, onClose }: Props) {
       console.log("data :", data);
 
       if (data.documents) {
-        const mapped = data.documents.map((doc: any) => {
-          // 우선순위: road_address → address
-          const region = doc.road_address ?? doc.address;
+        // 🔥 필터링: '동', '읍', '면' 이 포함된 주소만 남김
+        const filtered = data.documents.filter((doc: any) =>
+          /(동|읍|면)$/.test(doc.address_name.trim())
+        );
 
-          if (!region) return "";
-
-          const parts = [
-            region.region_1depth_name,
-            region.region_2depth_name,
-            region.region_3depth_name,
-          ].filter(Boolean);
-
-          return parts.join(" ");
-        });
-
-        // 중복 제거 & 빈값 제거
-        const unique = Array.from(new Set(mapped.filter(Boolean)));
-        console.log("unique :", unique);
-
-        setResults(unique);
+        setResults(filtered);
       }
     } catch (error) {
       console.error(error);
@@ -141,18 +126,31 @@ export default function LocationModal({ visible, onClose }: Props) {
 
         {/* 스크롤 리스트 */}
         <ScrollView contentContainerStyle={styles.list}>
-          {results.map((region, index) => (
-            <TouchableOpacity 
-              key={index} 
-              style={styles.item} 
-              onPress={() => {
-              setLocation(results[index]);            // 선택한 문서 전체 저장
-              onClose();
-              navigation.navigate("Home"); // 메인 화면으로 이동
-            }}>
-              <Text>{region}</Text>
-            </TouchableOpacity>
-          ))}
+          {results.map((doc, index) => {
+            // 주소 조합
+            const regionName = [
+              doc.address?.region_1depth_name,
+              doc.address?.region_2depth_name,
+              doc.address?.region_3depth_name,
+            ]
+              .filter(Boolean)
+              .join(" ");
+
+            return (
+              <TouchableOpacity
+                key={index}
+                style={styles.itemRow}
+                onPress={() => {
+                  setLocation(doc);     // ✅ Zustand에 원본 doc 저장
+                  onClose();
+                  navigation.navigate("Home");
+                }}
+              >
+                <Text style={styles.itemText}>{doc.address_name}</Text>
+                <ArrowIcon width={16} height={16} />
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       </SafeAreaView>
     </Modal>

@@ -58,4 +58,20 @@ iconRight: {
   marginLeft: 8,
 },
 
+itemRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  paddingVertical: 15,
+  paddingHorizontal: 20,
+  borderBottomWidth: 1,
+  borderBottomColor: "#eee",
+},
+itemText: {
+  fontSize: 16,
+  color: "#333",
+  flex: 1,          // ✅ 텍스트가 밀려도 남을 수 있도록
+  marginRight: 10,
+},
+
 });

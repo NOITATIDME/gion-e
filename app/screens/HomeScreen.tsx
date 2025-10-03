@@ -33,6 +33,11 @@ import Icon1 from "../../assets/images/icon1.svg";
 import Icon2 from "../../assets/images/icon2.svg";
 import Link from "../../assets/images/link.svg";
 
+// 주소 저장 테스트
+import { useLocationStore } from "../store/LocationStore";
+
+
+
 // =============================
 // 타입 및 매핑
 // =============================
@@ -152,6 +157,11 @@ const generateHourlySlots = (startDate: Date = new Date()) => {
 // HomeScreen 컴포넌트
 // =============================
 export default function HomeScreen() {
+
+  const selectedLocation = useLocationStore((state) => state.selectedLocation);
+
+  console.log("📌 Zustand 저장된 위치:", selectedLocation);
+
   const navigation = useNavigation<StackNavigationProp<any>>();
 
   const [location] = useState("하남시 미사1동");  // 현재 위치 (임시)
