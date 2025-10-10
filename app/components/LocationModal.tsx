@@ -18,7 +18,8 @@ import ArrowIcon from "../../assets/images/arrow.svg";
 import { useLocationStore } from "../store/LocationStore";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../app/App"
+// === 네비게이션 타입 ===
+import { RootStackParamList } from '../types/type';
 
 type Props = {
   visible: boolean;

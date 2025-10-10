@@ -1,3 +1,5 @@
+import { AccessibilityInfo } from "react-native";
+
 export default ({ config }) => {
   return {
     ...config,
@@ -27,7 +29,11 @@ export default ({ config }) => {
     },
     assetBundlePatterns: ["assets/**/*"],
     ios: {
-      supportsTablet: true
+      supportsTablet: true,
+      infoPlist: { // ios 위치 허용 추가
+        NSLocationWhenInUseUsageDescription:
+          "이 앱은 위치 기반 서비스를 제공하기 위해 위치 접근 권한이 필요합니다.",
+      },
     },
     android: {
       package: "com.anonymous.gione",
@@ -36,7 +42,8 @@ export default ({ config }) => {
         backgroundColor: "#ffffff"
       },
       edgeToEdgeEnabled: true,
-      predictiveBackGestureEnabled: false
+      predictiveBackGestureEnabled: false,
+      permissions:["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"] // aos 위치 허용 추가
     },
     web: {
       favicon: "./assets/favicon.png"

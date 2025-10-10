@@ -6,20 +6,22 @@ import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
 import HomeScreen2 from './screens/HomeScreen2';
 import DailyForecastScreen from './screens/DailyForecastScreen';
+import LocationCheckScreen from "./screens/LocationCheckScreen";
 
 // === 네비게이션 타입 ===
-export type RootStackParamList = {
-  Home: undefined;
-  DailyForecast: { location: string; dailyData: any[] };
-  Home2: undefined;
-};;
+import { RootStackParamList } from './types/type';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName="LocationCheck">
+        <Stack.Screen
+          name="LocationCheck"
+          component={LocationCheckScreen}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen
           name="Home"
           component={HomeScreen}
