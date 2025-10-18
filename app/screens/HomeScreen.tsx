@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
   SafeAreaView,
   View,
@@ -13,12 +13,14 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
+import ViewShot from "react-native-view-shot";
 
 // === expo-video (최신 API) ===
 import { VideoView, useVideoPlayer } from "expo-video";
 
 import LocationModal from "../components/LocationModal";
 import OutfitModal from "../components/OutfitModal";
+import ShareModal from "../components/ShareModal";
 
 // === SVG 날씨 아이콘 ===
 import Weather1 from "../../assets/images/weather1.svg"; // sunny
@@ -35,8 +37,6 @@ import Link from "../../assets/images/link.svg";
 
 // 주소 저장 테스트
 import { useLocationStore } from "../store/LocationStore";
-
-
 
 // =============================
 // 타입 및 매핑
@@ -172,6 +172,23 @@ export default function HomeScreen() {
   const [current, setCurrent] = useState({ temp: 0, condition: "sunny" });
   const [hiLo, setHiLo] = useState({ low: 0, high: 0 });
 
+  const viewShotRef = useRef<ViewShot>(null);
+  const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [capturedUri, setCapturedUri] = useState<string | null>(null);
+
+  // 홈 화면 전체 캡처
+  const captureHomeScreen = async () => {
+    try {
+      const uri = await viewShotRef.current?.capture?.();
+      if (uri) {
+        setCapturedUri(uri);
+        setShareModalVisible(true);
+      }
+    } catch (error) {
+      console.error("캡처 실패:", error);
+    }
+  };
+
   // 화면 처음 로드될 때 → 현재 시각 기준 48시간 데이터 생성
   useEffect(() => {
     const slots = generateHourlySlots(new Date());
@@ -217,143 +234,155 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="light-content" />
-      <View style={styles.container}>
+      <ViewShot
+        ref={viewShotRef}
+        options={{ format: "jpg", quality: 0.9 }}
+        style={{ flex: 1 }}
+      >
+        <StatusBar barStyle="light-content" />
+        <View style={styles.container}>
 
-        {/* ===== 비디오 배경 ===== */}
-        <View style={{ ...StyleSheet.absoluteFillObject, zIndex: -1 }}>
-          <VideoView player={player} style={{ flex: 1 }} nativeControls={false} />
-        </View>
-
-        {/* ===== 캐릭터 이미지 ===== */}
-        <View style={styles.characterWrapper}>
-          <Image
-            source={characterAssets[timeOfDay]}
-            style={styles.character}
-            resizeMode="contain"
-          />
-        </View>
-
-        {/* ===== 상단 헤더 영역 ===== */}
-        <View style={styles.topHero}>
-          <View style={styles.topRow}>
-            {/* 위치 선택 버튼 */}
-            <TouchableOpacity
-              style={styles.locationWrapper}
-              onPress={() => setModalVisible(true)}
-            >
-              <Text style={styles.locationText}>{location}</Text>
-              <Text style={styles.locationArrow}>›</Text>
-            </TouchableOpacity>
-
-            {/* 공유 버튼 */}
-            <TouchableOpacity onPress={() => Alert.alert("공유", "공유 기능")}>
-              <Link
-                width={normalizeSize(21)}
-                height={normalizeSize(23)}
-                style={styles.headerIcon}
-              />
-            </TouchableOpacity>
+          {/* ===== 비디오 배경 ===== */}
+          <View style={{ ...StyleSheet.absoluteFillObject, zIndex: -1 }}>
+            <VideoView player={player} style={{ flex: 1 }} nativeControls={false} />
           </View>
 
-          {/* 위치 모달 */}
-          <LocationModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+          {/* ===== 캐릭터 이미지 ===== */}
+          <View style={styles.characterWrapper}>
+            <Image
+              source={characterAssets[timeOfDay]}
+              style={styles.character}
+              resizeMode="contain"
+            />
+          </View>
 
-          {/* 현재 온도 표시 */}
-          <View style={styles.tempArea}>
-            <View style={styles.tempRow}>
-              {getIcon(current.condition, normalizeSize(50), normalizeSize(50))}
-              <Text style={styles.nowTemp}>{current.temp}°</Text>
+          {/* ===== 상단 헤더 영역 ===== */}
+          <View style={styles.topHero}>
+            <View style={styles.topRow}>
+              {/* 위치 선택 버튼 */}
+              <TouchableOpacity
+                style={styles.locationWrapper}
+                onPress={() => setModalVisible(true)}
+              >
+                <Text style={styles.locationText}>{location}</Text>
+                <Text style={styles.locationArrow}>›</Text>
+              </TouchableOpacity>
+
+              {/* 공유 버튼 */}
+              <TouchableOpacity onPress={captureHomeScreen}>
+                <Link
+                  width={normalizeSize(21)}
+                  height={normalizeSize(23)}
+                  style={styles.headerIcon}
+                />
+              </TouchableOpacity>
             </View>
-            <Text style={styles.hilo}>
-              <Text style={styles.low}>{hiLo.low}°</Text>
-              {"  "}
-              <Text style={styles.high}>{hiLo.high}°</Text>
-            </Text>
+
+            {/* 위치 모달 */}
+            <LocationModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+
+            {/* 현재 온도 표시 */}
+            <View style={styles.tempArea}>
+              <View style={styles.tempRow}>
+                {getIcon(current.condition, normalizeSize(50), normalizeSize(50))}
+                <Text style={styles.nowTemp}>{current.temp}°</Text>
+              </View>
+              <Text style={styles.hilo}>
+                <Text style={styles.low}>{hiLo.low}°</Text>
+                {"  "}
+                <Text style={styles.high}>{hiLo.high}°</Text>
+              </Text>
+            </View>
           </View>
-        </View>
 
-        {/* ===== 안내 문구 ===== */}
-        <View style={styles.tipBubble}>
-          <Text style={styles.tipText}>{tipText}</Text>
-        </View>
+          {/* ===== 안내 문구 ===== */}
+          <View style={styles.tipBubble}>
+            <Text style={styles.tipText}>{tipText}</Text>
+          </View>
 
-        {/* ===== 버튼 영역 (옷차림, 일일예보) ===== */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity onPress={() => setOutfitVisible(true)}>
-            <Icon2 width={normalizeSize(58)} height={normalizeSize(58)} />
-          </TouchableOpacity>
+          {/* ===== 버튼 영역 (옷차림, 일일예보) ===== */}
+          <View style={styles.actionRow}>
+            <TouchableOpacity onPress={() => setOutfitVisible(true)}>
+              <Icon2 width={normalizeSize(58)} height={normalizeSize(58)} />
+            </TouchableOpacity>
 
-          {/* ===== 예보테스트 페이지 ===== */}
-          <TouchableOpacity onPress={() => navigation.navigate("Home2")}>
-            <Icon1 width={normalizeSize(58)} height={normalizeSize(58)} />
-          </TouchableOpacity>
-          
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("DailyForecast", {
-                location: location,
-                dailyData: [ // 데이터 넘기는 부분
-                  { date: "오늘", min: 16, max: 17, condition: "sunny" },
-                  { date: "내일", min: 21, max: 23, condition: "cloudy" },
-                  { date: "모레", min: 4, max: 6, condition: "rain" },
-                  { date: "8/23", min: 28, max: 31, condition: "sunny" },
-                ],
-              })
-            }
-          >
-            <Icon1 width={normalizeSize(58)} height={normalizeSize(58)} />
-          </TouchableOpacity>
-        </View>
+            {/* ===== 예보테스트 페이지 ===== */}
+            <TouchableOpacity onPress={() => navigation.navigate("Home2")}>
+              <Icon1 width={normalizeSize(58)} height={normalizeSize(58)} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("DailyForecast", {
+                  location: location,
+                  dailyData: [ // 데이터 넘기는 부분
+                    { date: "오늘", min: 16, max: 17, condition: "sunny" },
+                    { date: "내일", min: 21, max: 23, condition: "cloudy" },
+                    { date: "모레", min: 4, max: 6, condition: "rain" },
+                    { date: "8/23", min: 28, max: 31, condition: "sunny" },
+                  ],
+                })
+              }
+            >
+              <Icon1 width={normalizeSize(58)} height={normalizeSize(58)} />
+            </TouchableOpacity>
+          </View>
 
-        {/* ===== 시간대별 스와이퍼 ===== */}
-        <View style={styles.bottomPanel}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.hourlyList}
-          >
-            {hourly.map((h, idx) => {
-              const active = idx === selectedIdx;
-              return (
-                <TouchableOpacity
-                  key={idx}
-                  style={[
-                    styles.hourCard,
-                    active ? styles.hourCardActive : styles.hourCardInactive,
-                  ]}
-                  onPress={() => onSelectHour(idx)}
-                  activeOpacity={0.9}
-                >
-                  {/* 시간대 라벨 */}
-                  <Text
+          {/* ===== 시간대별 스와이퍼 ===== */}
+          <View style={styles.bottomPanel}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.hourlyList}
+            >
+              {hourly.map((h, idx) => {
+                const active = idx === selectedIdx;
+                return (
+                  <TouchableOpacity
+                    key={idx}
                     style={[
-                      styles.hourLabel,
-                      active ? styles.hourLabelActive : styles.hourLabelInactive,
+                      styles.hourCard,
+                      active ? styles.hourCardActive : styles.hourCardInactive,
                     ]}
+                    onPress={() => onSelectHour(idx)}
+                    activeOpacity={0.9}
                   >
-                    {h.label}
-                  </Text>
-                  {/* 날씨 아이콘 */}
-                  {getIcon(h.condition, normalizeSize(30), normalizeSize(24))}
-                  {/* 기온 */}
-                  <Text
-                    style={[
-                      styles.hourTemp,
-                      active ? styles.hourTempActive : styles.hourTempInactive,
-                    ]}
-                  >
-                    {h.temp}°
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        </View>
+                    {/* 시간대 라벨 */}
+                    <Text
+                      style={[
+                        styles.hourLabel,
+                        active ? styles.hourLabelActive : styles.hourLabelInactive,
+                      ]}
+                    >
+                      {h.label}
+                    </Text>
+                    {/* 날씨 아이콘 */}
+                    {getIcon(h.condition, normalizeSize(30), normalizeSize(24))}
+                    {/* 기온 */}
+                    <Text
+                      style={[
+                        styles.hourTemp,
+                        active ? styles.hourTempActive : styles.hourTempInactive,
+                      ]}
+                    >
+                      {h.temp}°
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
 
-        {/* ===== 옷차림 모달 ===== */}
-        <OutfitModal visible={outfitVisible} onClose={() => setOutfitVisible(false)} />
-      </View>
+          {/* ===== 옷차림 모달 ===== */}
+          <OutfitModal visible={outfitVisible} onClose={() => setOutfitVisible(false)} />
+        </View>
+      </ViewShot>
+
+      <ShareModal
+        visible={shareModalVisible}
+        onClose={() => setShareModalVisible(false)}
+        imageUri={capturedUri}
+      />
     </SafeAreaView>
   );
 }

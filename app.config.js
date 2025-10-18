@@ -29,6 +29,7 @@ export default ({ config }) => {
     },
     assetBundlePatterns: ["assets/**/*"],
     ios: {
+      bundleIdentifier: "com.anonymous.gione",
       supportsTablet: true,
       infoPlist: { // ios 위치 허용 추가
         NSLocationWhenInUseUsageDescription:

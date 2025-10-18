@@ -1,5 +1,0 @@
-WEATHER_API_URL=http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst
-WEATHER_API_KEY=0HE0u8xoIq/d/1vhCJ3jqUkzZ8ymqM7jB4Cwemm9B6DwrxktODK78eJxMiFKa7Et6T8iBgedU80IP/J8iB8Nxw==
-DAILY_WEATHER_MID_API_URL=https://apis.data.go.kr/1360000/MidFcstInfoService/getMidTa
-DAILY_WEATHER_MID_LAND_API_URL=https://apis.data.go.kr/1360000/MidFcstInfoService/getMidLandFcst
-DAILY_WEATHER_API_KEY=0HE0u8xoIq/d/1vhCJ3jqUkzZ8ymqM7jB4Cwemm9B6DwrxktODK78eJxMiFKa7Et6T8iBgedU80IP/J8iB8Nxw==
